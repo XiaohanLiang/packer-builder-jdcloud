@@ -66,5 +66,5 @@ func (config *JDCloudAccessConfig) validateRegion() error {
 			return nil
 		}
 	}
-	return fmt.Errorf("[ERROR] Invalid Region detected: %s", i.Region)
+	return fmt.Errorf("[ERROR] Invalid Region detected: %s", config.Region)
 }
