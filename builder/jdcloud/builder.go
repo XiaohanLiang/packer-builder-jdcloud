@@ -15,6 +15,7 @@ type Builder struct {
 // This function is invoked before builder begin running
 // To make all data info prepared
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
+
 	config, errs := NewConfig(raws...)
 	if errs != nil {
 		return nil, errs
@@ -33,6 +34,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	state.Put("config", b.config)
 
 	ui.Say("Position-2 Begin building several steps")
+	//ui.Say("Position-3")
 	// Several step to execute different functions
 	steps := []multistep.Step{
 		&stepCheckSourceImage{
@@ -62,7 +64,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	artifact := &Artifact{
 		ImageId:  state.Get("imageId").(string),
-		RegionID: b.config.AccessConfig.Region,
+		RegionID: b.config.RegionId,
 	}
 	return artifact, nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/apis"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/client"
-	vm "github.com/jdcloud-api/jdcloud-sdk-go/services/vm/models"
 	"time"
 )
 
@@ -19,18 +18,18 @@ type stepCreateJDCloudImage struct {
 func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 
 	ui := state.Get("ui").(packer.Ui)
-	ui.Say("Now begin stopping this instance")
+	ui.Say("Process - stepCreateJDCloudImage")
 
 	generalConfig := state.Get("config").(*Config)
-	instanceId := state.Get("instance").(*vm.Instance).InstanceId
-	vmClient := generalConfig.AccessConfig.client
-	regionId := generalConfig.AccessConfig.Region
+	instanceId :=  state.Get("instanceId").(string)
+	vmClient := generalConfig.VmClient
+	regionId := generalConfig.RegionId
 
 	req := apis.NewCreateImageRequest(regionId, instanceId, s.ImageName, "")
 	resp, err := vmClient.CreateImage(req)
 
 	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("Error creating image: %s", err)
+		err := fmt.Errorf("[ERROR] Creating image: Error-%s ,Resp-code:%s, message:%s", err ,resp.Error.Code, resp.Error.Message)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

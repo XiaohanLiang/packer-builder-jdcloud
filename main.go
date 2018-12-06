@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/hashicorp/packer/packer/plugin"
 	"github.com/XiaohanLiang/packer-builder-jdcloud/builder/jdcloud"
+	"github.com/hashicorp/packer/packer/plugin"
 )
 
 func main() {

@@ -22,17 +22,17 @@ type stepCreateJDCloudInstance struct {
 	InstanceType string
 	ImageId      string
 	SubnetId     string
-	Instance     *vm.Instance
+	InstanceId   string
 }
 
 func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 
-	ui := state.Get("Ui").(packer.Ui)
+	ui := state.Get("ui").(packer.Ui)
 	ui.Say("Now begin creating instances")
 
 	generalConfig := state.Get("config").(*Config)
-	vmClient := generalConfig.AccessConfig.client
-	regionId := generalConfig.AccessConfig.Region
+	vmClient := generalConfig.VmClient
+	regionId := generalConfig.RegionId
 
 	instanceSpec := vm.InstanceSpec{
 		Az:           &s.Az,
@@ -47,7 +47,7 @@ func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.State
 	resp, err := vmClient.CreateInstances(req)
 
 	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("Error creating instance: %s", err)
+		err := fmt.Errorf("Error creating instance-Error-%s, Respond status-Code:%s,Message:%s", err,resp.Error.Code,resp.Error.Message)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -69,9 +69,10 @@ func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.State
 		return multistep.ActionHalt
 	}
 
-	s.Instance = &respInstance.Result.Instance
-	state.Put("instance", respInstance.Result.Instance)
-
+	s.InstanceId = respInstance.Result.Instance.InstanceId
+	state.Put("instanceId", respInstance.Result.Instance.InstanceId)
+	ui.Message(fmt.Sprintf("VM has been created, with instanceName:%s and instanceId:%s",
+			   respInstance.Result.Instance.InstanceName,respInstance.Result.Instance.InstanceId))
 	return multistep.ActionContinue
 }
 
@@ -101,6 +102,6 @@ func waitForInstance(instanceId string, regionId string, vmClient *client.VmClie
 	return nil
 }
 
-func (s *stepCreateJDCloudInstance) Cleanup(multistep.StateBag) {
-	return
+func (s *stepCreateJDCloudInstance) Cleanup(state multistep.StateBag) {
+
 }

@@ -1,5 +1,8 @@
 package jdcloud
 
+// TODO Currently abandoned
+// Not quite sure if we are going to this place
+
 import (
 	"fmt"
 	"github.com/hashicorp/packer/template/interpolate"
@@ -15,21 +18,15 @@ type JDCloudAccessConfig struct {
 	client    *client.VmClient
 }
 
-// Build a client for JDCloud client
-//func (config *JDCloudAccessConfig) Client() (*client.VmClient, error) {
-//vmClient := client.NewVmClient(config.Credential)
-//return vmClient, nil
-//}
-
 // Invoke functions below and collect errors into an array form
-func (config *JDCloudAccessConfig) Prepare(ctx *interpolate.Context) []error {
+func (c *JDCloudAccessConfig) Prepare(ctx *interpolate.Context) []error {
 
 	errorArray := []error{}
-	if err := config.Config(); err != nil {
+	if err := c.Config(); err != nil {
 		errorArray = append(errorArray, err)
 	}
 
-	if err := config.validateRegion(); err != nil {
+	if err := c.validateRegion(); err != nil {
 		errorArray = append(errorArray, err)
 	}
 
@@ -40,22 +37,22 @@ func (config *JDCloudAccessConfig) Prepare(ctx *interpolate.Context) []error {
 	return nil
 }
 
-func (config *JDCloudAccessConfig) Config() error {
+func (c *JDCloudAccessConfig) Config() error {
 
-	if config.AccessKey == "" {
-		config.AccessKey = os.Getenv("access_key")
+	if c.AccessKey == "" {
+		c.AccessKey = os.Getenv("access_key")
 	}
 
-	if config.SecretKey == "" {
-		config.SecretKey = os.Getenv("secret_key")
+	if c.SecretKey == "" {
+		c.SecretKey = os.Getenv("secret_key")
 	}
 
-	if config.AccessKey == "" || config.SecretKey == "" {
+	if c.AccessKey == "" || c.SecretKey == "" {
 		return fmt.Errorf("[ERROR] Empty key pair, povide your keys or set as environment variable")
 	}
 
-	credential := core.NewCredentials(config.AccessKey, config.SecretKey)
-	config.client = client.NewVmClient(credential)
+	credential := core.NewCredentials(c.AccessKey, c.SecretKey)
+	c.client = client.NewVmClient(credential)
 	return nil
 }
 

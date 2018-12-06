@@ -9,7 +9,6 @@ import (
 )
 
 // Plan what does a config File look like
-// 		difference between ui.Say and ui.Message
 // 		parameter JDCloudSourceImageId is not used in this file
 
 type stepCheckSourceImage struct {
@@ -23,8 +22,8 @@ func (s *stepCheckSourceImage) Run(_ context.Context, state multistep.StateBag) 
 
 	generalConfig := state.Get("config").(*Config)
 
-	vmClient := generalConfig.AccessConfig.client
-	regionId := generalConfig.AccessConfig.Region
+	vmClient := generalConfig.VmClient
+	regionId := generalConfig.RegionId
 	sourceImageId := generalConfig.SourceImageId
 
 	req := apis.NewDescribeImageRequest(regionId, sourceImageId)
@@ -50,6 +49,4 @@ func (s *stepCheckSourceImage) Run(_ context.Context, state multistep.StateBag) 
 	return multistep.ActionContinue
 }
 
-func (s *stepCheckSourceImage) Cleanup(state multistep.StateBag) {
-	return
-}
+func(stepCheckSourceImage) Cleanup(state multistep.StateBag) {}
