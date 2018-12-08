@@ -1,0 +1,37 @@
+{
+  "variables": {
+    "jdcloud_access_key": "",
+    "jdcloud_secret_key": ""
+  },
+  "builders": [
+    {
+      "type": "jdcloud",
+      "source_image_id": "img-id",
+      "access_key": "your-access-key",
+      "secret_key": "your-publuc-key",
+      "region_id": "cn-north-1",
+      "az": "cn-north-1a",
+      "instance_name": "packerInstance",
+      "instance_type": "c.n1.large",
+      "image_name": "packerImage",
+      "subnet_id": "subnet-id",
+      "password": "JDCloudDevOps",
+      "communicator":"ssh",
+      "ssh_username": "root",
+      "ssh_password": "JDCloudDevOps",
+      "ssh_wait_timeout" : "60s"
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-get install -y python-pip",
+        "wget http://JDCloud.oss.cn-north-1.jcloud.com/hello.txt",
+        "git clone https://github.com/XiaohanLiang/packer-builder-jdcloud.git"
+      ]
+    }
+  ]
+}

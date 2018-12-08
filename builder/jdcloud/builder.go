@@ -65,15 +65,18 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		},
 	}, raws...)
 	if err != nil {
-		return nil, fmt.Errorf("oooo")
+		return nil, fmt.Errorf("[ERROR] Failed in decoding JSON->mapstructure")
 	}
+
 	var errs *packer.MultiError
 	errs = packer.MultiErrorAppend(errs, b.config.SSHConfig.Prepare(&b.config.ctx)...)
 	if len(errs.Errors) != 0 {
 		return nil, errs
 	}
+
 	credential := core.NewCredentials(b.config.AccessKey, b.config.SecretKey)
 	b.config.VmClient = client.NewVmClient(credential)
+
 	return nil, nil
 }
 
