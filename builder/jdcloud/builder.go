@@ -1,26 +1,79 @@
 package jdcloud
 
 import (
+	"fmt"
 	"github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/helper/communicator"
+	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
+	"github.com/hashicorp/packer/template/interpolate"
+	"github.com/jdcloud-api/jdcloud-sdk-go/core"
+	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/client"
 	"log"
 )
 
+const (
+	Timeout      = 300
+	Tolerance    = 3
+	VMRunning    = "running"
+	VMDeleted    = "deleted"
+	VMStopped    = "stopped"
+	ImageTimeout = 300
+	ImageReady   = "ready"
+	BuilderID    = "JDCloud"
+)
+
+type Config struct {
+	common.PackerConfig `mapstructure:",squash"`
+	SSHConfig           `mapstructure:",squash"`
+	SourceImageId       string `mapstructure:"source_image_id"`
+	AccessKey           string `mapstructure:"access_key"`
+	SecretKey           string `mapstructure:"secret_key"`
+	RegionId            string `mapstructure:"region_id"`
+	Az                  string `mapstructure:"az"`
+	InstanceName        string `mapstructure:"instance_name"`
+	InstanceType        string `mapstructure:"instance_type"`
+	ImageName           string `mapstructure:"image_name"`
+	Password            string `mapstructure:"password"`
+	SubnetId            string `mapstructure:"subnet_id"`
+
+	Communicator string `mapstructure:"communicator"`
+	SSH_Username string `mapstructure:"ssh_username"`
+	SSH_Password string `mapstructure:"ssh_password"`
+	SSH_Timeout  string `mapstructure:"ssh_wait_timeout"`
+
+	VmClient *client.VmClient
+	ctx      interpolate.Context
+}
+
 type Builder struct {
-	config *Config
+	config Config
 	runner multistep.Runner
 }
 
 // This function is invoked before builder begin running
 // To make all data info prepared
 func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
-
-	config, errs := NewConfig(raws...)
-	if errs != nil {
+	err := config.Decode(&b.config, &config.DecodeOpts{
+		Interpolate:        true,
+		InterpolateContext: &b.config.ctx,
+		InterpolateFilter: &interpolate.RenderFilter{
+			Exclude: []string{
+				"boot_command",
+			},
+		},
+	}, raws...)
+	if err != nil {
+		return nil, fmt.Errorf("oooo")
+	}
+	var errs *packer.MultiError
+	errs = packer.MultiErrorAppend(errs, b.config.SSHConfig.Prepare(&b.config.ctx)...)
+	if len(errs.Errors) != 0 {
 		return nil, errs
 	}
-	b.config = config
+	credential := core.NewCredentials(b.config.AccessKey, b.config.SecretKey)
+	b.config.VmClient = client.NewVmClient(credential)
 	return nil, nil
 }
 
@@ -37,16 +90,30 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	//ui.Say("Position-3")
 	// Several step to execute different functions
 	steps := []multistep.Step{
+
 		&stepCheckSourceImage{
 			JDCloudSourceImageId: b.config.SourceImageId,
 		},
+
 		&stepCreateJDCloudInstance{
 			Az:           b.config.Az,
 			InstanceName: b.config.InstanceName,
 			InstanceType: b.config.InstanceType,
 			ImageId:      b.config.SourceImageId,
 			SubnetId:     b.config.SubnetId,
+			Password:     b.config.Password,
 		},
+
+		//Config the communicator-SSH
+		&communicator.StepConnect{
+			Config:    &b.config.SSHConfig.Comm,
+			Host:      CommHost,
+			SSHConfig: b.config.SSHConfig.Comm.SSHConfigFunc(),
+		},
+
+		// Now we begin provisioning process
+		&common.StepProvision{},
+
 		&stepStopJDCloudInstance{},
 		&stepCreateJDCloudImage{
 			ImageName: b.config.ImageName,

@@ -20,8 +20,8 @@ func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("Process - stepCreateJDCloudImage")
 
-	generalConfig := state.Get("config").(*Config)
-	instanceId :=  state.Get("instanceId").(string)
+	generalConfig := state.Get("config").(Config)
+	instanceId := state.Get("instanceId").(string)
 	vmClient := generalConfig.VmClient
 	regionId := generalConfig.RegionId
 
@@ -29,7 +29,7 @@ func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag
 	resp, err := vmClient.CreateImage(req)
 
 	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("[ERROR] Creating image: Error-%s ,Resp-code:%s, message:%s", err ,resp.Error.Code, resp.Error.Message)
+		err := fmt.Errorf("[ERROR] Creating image: Error-%s ,Resp-code:%s, message:%s", err, resp.Error.Code, resp.Error.Message)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt

@@ -20,7 +20,7 @@ func (s *stepCheckSourceImage) Run(_ context.Context, state multistep.StateBag) 
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("Now begin validating source image")
 
-	generalConfig := state.Get("config").(*Config)
+	generalConfig := state.Get("config").(Config)
 
 	vmClient := generalConfig.VmClient
 	regionId := generalConfig.RegionId
@@ -49,4 +49,4 @@ func (s *stepCheckSourceImage) Run(_ context.Context, state multistep.StateBag) 
 	return multistep.ActionContinue
 }
 
-func(stepCheckSourceImage) Cleanup(state multistep.StateBag) {}
+func (stepCheckSourceImage) Cleanup(state multistep.StateBag) {}

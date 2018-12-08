@@ -8,7 +8,7 @@ import (
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/apis"
 )
 
-type stepStopJDCloudInstance struct{
+type stepStopJDCloudInstance struct {
 }
 
 func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
@@ -16,7 +16,7 @@ func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBa
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("Process - stepStopJDCloudInstance")
 
-	generalConfig := state.Get("config").(*Config)
+	generalConfig := state.Get("config").(Config)
 	instanceId := state.Get("instanceId").(string)
 	vmClient := generalConfig.VmClient
 	regionId := generalConfig.RegionId
@@ -24,7 +24,7 @@ func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBa
 	req := apis.NewStopInstanceRequest(regionId, instanceId)
 	resp, err := vmClient.StopInstance(req)
 	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("[ERROR] Trying to stop this vm: Error-%s ,Resp-code:%s, message:%s", err ,resp.Error.Code, resp.Error.Message)
+		err := fmt.Errorf("[ERROR] Trying to stop this vm: Error-%s ,Resp-code:%s, message:%s", err, resp.Error.Code, resp.Error.Message)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
@@ -39,7 +39,7 @@ func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBa
 		return multistep.ActionHalt
 	}
 
-	ui.Message(fmt.Sprintf("VM with id %s has been stopped",instanceId))
+	ui.Message(fmt.Sprintf("VM with id %s has been stopped", instanceId))
 	return multistep.ActionContinue
 }
 
