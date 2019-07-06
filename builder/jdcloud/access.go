@@ -1,8 +1,5 @@
 package jdcloud
 
-// TODO Currently abandoned
-// Not quite sure if we are going to this place
-
 import (
 	"fmt"
 	"github.com/hashicorp/packer/template/interpolate"

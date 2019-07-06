@@ -2,6 +2,7 @@ package jdcloud
 
 import (
 	"fmt"
+	"context"
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/config"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/packer/template/interpolate"
 	"github.com/jdcloud-api/jdcloud-sdk-go/core"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/client"
-	"log"
 )
 
 const (
@@ -68,30 +68,29 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		return nil, fmt.Errorf("[ERROR] Failed in decoding JSON->mapstructure")
 	}
 
-	var errs *packer.MultiError
+	errs := &packer.MultiError{}
 	errs = packer.MultiErrorAppend(errs, b.config.SSHConfig.Prepare(&b.config.ctx)...)
-	if len(errs.Errors) != 0 {
+	if errs != nil && len(errs.Errors) != 0 {
 		return nil, errs
 	}
 
+	packer.LogSecretFilter.Set(b.config.AccessKey, b.config.SecretKey)
 	credential := core.NewCredentials(b.config.AccessKey, b.config.SecretKey)
 	b.config.VmClient = client.NewVmClient(credential)
 
 	return nil, nil
 }
 
-func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
+func (b *Builder) Run(ctx context.Context,ui packer.Ui, hook packer.Hook) (packer.Artifact, error) {
 
 	ui.Say("Position-1 Begin building,and set up state bag")
-	// Set up state bag
 	state := new(multistep.BasicStateBag)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 	state.Put("config", b.config)
 
 	ui.Say("Position-2 Begin building several steps")
-	//ui.Say("Position-3")
-	// Several step to execute different functions
+
 	steps := []multistep.Step{
 
 		&stepCheckSourceImage{
@@ -125,7 +124,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Run these steps
 	b.runner = common.NewRunnerWithPauseFn(steps, b.config.PackerConfig, ui, state)
-	b.runner.Run(state)
+	b.runner.Run(ctx,state)
 
 	// If there was an error, return that
 	if rawErr, ok := state.GetOk("error"); ok {
@@ -139,9 +138,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	return artifact, nil
 }
 
-func (b *Builder) Cancel() {
-	if b.runner != nil {
-		log.Println("Cancelling the step runner...")
-		b.runner.Cancel()
-	}
-}
+//func (b *Builder) Cancel() {
+//	if b.runner != nil {
+//		log.Println("Cancelling the step runner...")
+//		b.runner.Cancel()
+//	}
+//}
