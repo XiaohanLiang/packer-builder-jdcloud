@@ -1,0 +1,33 @@
+{
+  "builders": [
+    {
+      "type": "jdcloud",
+      "source_image_id": "<some-image>",
+      "access_key": "<your-access-key>",
+      "secret_key": "<your-secret-key>",
+      "region_id": "cn-north-1",
+      "az": "cn-north-1c",
+      "instance_name": "created_by_packer",
+      "instance_type": "g.n2.medium",
+      "image_id": "packerImage",
+      "subnet_id": "<some-subnet>",
+
+      "key_name": "DevOps2018",
+
+      "communicator":"ssh",
+      "ssh_username": "root",
+      "ssh_password": "DevOps2018",
+      "ssh_wait_timeout" : "60s"
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-get install -y python-pip"
+      ]
+    }
+  ]
+}

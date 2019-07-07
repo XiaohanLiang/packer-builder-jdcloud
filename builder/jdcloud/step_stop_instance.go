@@ -9,37 +9,28 @@ import (
 )
 
 type stepStopJDCloudInstance struct {
+	InstanceSpecConfig *JDCloudInstanceSpecConfig
 }
 
 func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 
 	ui := state.Get("ui").(packer.Ui)
-	ui.Say("Process - stepStopJDCloudInstance")
+	ui.Say("Stopping this instance")
 
-	generalConfig := state.Get("config").(Config)
-	instanceId := state.Get("instanceId").(string)
-	vmClient := generalConfig.VmClient
-	regionId := generalConfig.RegionId
+	req := apis.NewStopInstanceRequest(Region,s.InstanceSpecConfig.InstanceId)
+	resp, err := VmClient.StopInstance(req)
+	if err != nil || resp.Error.Code != FINE {
+		ui.Error(fmt.Sprintf("[ERROR] Failed in trying to stop this vm: Error-%s ,Resp:%s", err, resp))
+		return multistep.ActionHalt
+	}
 
-	req := apis.NewStopInstanceRequest(regionId, instanceId)
-	resp, err := vmClient.StopInstance(req)
-	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("[ERROR] Trying to stop this vm: Error-%s ,Resp-code:%s, message:%s", err, resp.Error.Code, resp.Error.Message)
-		state.Put("error", err)
+	_,err = InstanceStatusRefresher(s.InstanceSpecConfig.InstanceId, []string{VM_RUNNING,VM_STOPPING},[]string{VM_STOPPED})
+	if err != nil {
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
-	ui.Message("Trying to stop this VM...")
-	stoppingStatus := waitForInstance(instanceId, regionId, vmClient, VMStopped)
-	if stoppingStatus != nil {
-		err := fmt.Errorf("[ERROR] Waiting for JDCloud instance to stop: err:%s", stoppingStatus)
-		state.Put("error", err)
-		ui.Error(err.Error())
-		return multistep.ActionHalt
-	}
-
-	ui.Message(fmt.Sprintf("VM with id %s has been stopped", instanceId))
+	ui.Message("Instance has been stopped :)")
 	return multistep.ActionContinue
 }
 

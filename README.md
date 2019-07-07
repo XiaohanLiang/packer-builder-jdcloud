@@ -1,6 +1,12 @@
 # JDCloud builder for Packer
-## Official website of Packer: www.packer.io
 
-This plugin is still under developing, leave your advices and feedback. Any feedback will be appreciated.
+## What it is 🤔
 
-Template configuration file can be found [here](https://github.com/XiaohanLiang/packer-builder-jdcloud/blob/master/example/example.json)
+We are trying to build our plugin for Hashicorp-Packer.
+This is a developer branch of packer-builder-jdcloud plugin.
+
+## Current status 😎
+
+- [x] Password / Key pair login
+- [x] Create instance with exists subnet / with a new subnet
+- [ ] Support to Windows VM

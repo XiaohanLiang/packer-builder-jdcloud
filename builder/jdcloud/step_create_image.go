@@ -5,74 +5,51 @@ import (
 	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/apis"
-	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/client"
 	"time"
 )
 
 type stepCreateJDCloudImage struct {
-	//image     *vm.Image
-	ImageName string
+	InstanceSpecConfig *JDCloudInstanceSpecConfig
 }
 
 func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 
 	ui := state.Get("ui").(packer.Ui)
-	ui.Say("Process - stepCreateJDCloudImage")
+	ui.Say("Creating images")
 
-	generalConfig := state.Get("config").(Config)
-	instanceId := state.Get("instanceId").(string)
-	vmClient := generalConfig.VmClient
-	regionId := generalConfig.RegionId
-
-	req := apis.NewCreateImageRequest(regionId, instanceId, s.ImageName, "")
-	resp, err := vmClient.CreateImage(req)
-
-	if err != nil || resp.Error.Code != 0 {
-		err := fmt.Errorf("[ERROR] Creating image: Error-%s ,Resp-code:%s, message:%s", err, resp.Error.Code, resp.Error.Message)
-		state.Put("error", err)
-		ui.Error(err.Error())
+	req := apis.NewCreateImageRequest(Region, s.InstanceSpecConfig.InstanceId, s.InstanceSpecConfig.ImageName, "")
+	resp, err := VmClient.CreateImage(req)
+	if err != nil || resp.Error.Code != FINE {
+		ui.Error(fmt.Sprintf("[ERROR] Creating image: Error-%v ,Resp:%v", err, resp))
 		return multistep.ActionHalt
 	}
 
 	imageId := resp.Result.ImageId
-	resultingStatus := waitForImage(imageId, regionId, vmClient, ImageReady)
-
-	if resultingStatus != nil {
-		err := fmt.Errorf("Timeout waiting for image to be created: %s", err)
-		state.Put("error", err)
+	if err := ImageStatusWaiter(imageId); err != nil {
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
-	state.Put("imageId", imageId)
+	s.InstanceSpecConfig.ArtifactId = imageId
 	return multistep.ActionContinue
 }
 
-func waitForImage(imageId string, regionId string, vmClient *client.VmClient, expectedStatus string) error {
-	currentTime := int(time.Now().Unix())
-	req := apis.NewDescribeImageRequest(regionId, imageId)
-	connectFailedCount := 0
-	for {
-		time.Sleep(time.Second * 10)
-		resp, err := vmClient.DescribeImage(req)
-		if resp.Result.Image.Status == expectedStatus {
+func ImageStatusWaiter(imageId string) error {
+	req := apis.NewDescribeImageRequest(Region,imageId)
+
+	return resource.Retry(5 * time.Minute,func() *resource.RetryError{
+		resp,err := VmClient.DescribeImage(req)
+		if err == nil && resp.Result.Image.Status == ImageReady{
 			return nil
 		}
-		if int(time.Now().Unix())-currentTime > ImageTimeout {
-			return fmt.Errorf("[ERROR] waitForInstance failed, timeout")
+		if connectionError(err){
+			return resource.RetryableError(err)
+		}else{
+			return resource.NonRetryableError(err)
 		}
-		if err != nil {
-			if connectFailedCount > Tolerance {
-				return fmt.Errorf("[ERROR] waitForInstance, Tolerrance Exceeded failed %s ", err.Error())
-			}
-			connectFailedCount++
-			continue
-		} else {
-			connectFailedCount = 0
-		}
-	}
-	return nil
+	})
 }
 
 func (s *stepCreateJDCloudImage) Cleanup(state multistep.StateBag) {
