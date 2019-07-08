@@ -12,7 +12,7 @@ type Artifact struct {
 }
 
 func (*Artifact) BuilderId() string {
-	return BuilderID
+	return BUILDER_ID
 }
 
 func (*Artifact) Files() []string {

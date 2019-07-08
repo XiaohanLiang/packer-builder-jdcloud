@@ -56,6 +56,7 @@ func (b *Builder) Run(ctx context.Context, ui packer.Ui, hook packer.Hook) (pack
 
 		&stepCreateJDCloudInstance{
 			InstanceSpecConfig: &b.config.JDCloudInstanceSpecConfig,
+			CredentialConfig:   &b.config.JDCloudCredentialConfig,
 		},
 
 		&communicator.StepConnect{

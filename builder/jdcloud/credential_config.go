@@ -2,8 +2,8 @@ package jdcloud
 
 import (
 	"fmt"
-	"github.com/jdcloud-api/jdcloud-sdk-go/core"
 	"github.com/hashicorp/packer/template/interpolate"
+	"github.com/jdcloud-api/jdcloud-sdk-go/core"
 	vm "github.com/jdcloud-api/jdcloud-sdk-go/services/vm/client"
 	vpc "github.com/jdcloud-api/jdcloud-sdk-go/services/vpc/client"
 	"os"
@@ -34,6 +34,7 @@ func (jd *JDCloudCredentialConfig) Prepare(ctx *interpolate.Context) []error {
 	credential := core.NewCredentials(jd.AccessKey,jd.SecretKey)
 	VmClient = vm.NewVmClient(credential)
 	VpcClient = vpc.NewVpcClient(credential)
+	Region = jd.RegionId
 
 	return nil
 }

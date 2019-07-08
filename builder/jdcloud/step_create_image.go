@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/apis"
 	"time"
 )
@@ -39,17 +38,18 @@ func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag
 func ImageStatusWaiter(imageId string) error {
 	req := apis.NewDescribeImageRequest(Region,imageId)
 
-	return resource.Retry(5 * time.Minute,func() *resource.RetryError{
+	return Retry(5 * time.Minute,func() *RetryError{
 		resp,err := VmClient.DescribeImage(req)
-		if err == nil && resp.Result.Image.Status == ImageReady{
+		if err == nil && resp.Result.Image.Status == READY{
 			return nil
 		}
 		if connectionError(err){
-			return resource.RetryableError(err)
+			return RetryableError(err)
 		}else{
-			return resource.NonRetryableError(err)
+			return NonRetryableError(err)
 		}
 	})
+	return nil
 }
 
 func (s *stepCreateJDCloudImage) Cleanup(state multistep.StateBag) {

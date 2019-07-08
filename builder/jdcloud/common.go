@@ -11,19 +11,13 @@ import (
 const (
 	FINE           = 0
 	CONNECT_FAILED = "Client.Timeout exceeded"
-	Timeout        = 300
-	Tolerance      = 3
 	VM_PENDING     = "pending"
 	VM_RUNNING     = "running"
 	VM_STARTING    = "starting"
-	VMRunning      = "running"
-	VMDeleted      = "deleted"
-	VMStopped      = "stopped"
-	VM_STOPPING       = "stopping"
-	VM_STOPPED        = "stopped"
-	ImageTimeout   = 300
-	ImageReady     = "ready"
-	BuilderID      = "hashicorp.jdcloud"
+	VM_STOPPING    = "stopping"
+	VM_STOPPED     = "stopped"
+	READY          = "ready"
+	BUILDER_ID      = "hashicorp.jdcloud"
 )
 
 var (

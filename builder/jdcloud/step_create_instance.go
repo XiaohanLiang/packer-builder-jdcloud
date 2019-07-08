@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/jdcloud-api/jdcloud-sdk-go/core"
 	"github.com/jdcloud-api/jdcloud-sdk-go/services/vm/apis"
 	vm "github.com/jdcloud-api/jdcloud-sdk-go/services/vm/models"
@@ -13,7 +12,6 @@ import (
 	vpcClient "github.com/jdcloud-api/jdcloud-sdk-go/services/vpc/client"
 	vpc "github.com/jdcloud-api/jdcloud-sdk-go/services/vpc/models"
 	"regexp"
-
 	"time"
 )
 
@@ -68,7 +66,7 @@ func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.State
 	}
 
 	s.InstanceSpecConfig.InstanceId = instanceId
-	instance := instanceInterface.(*vm.Instance)
+	instance := instanceInterface.(vm.Instance)
 	privateIpAddress := instance.PrivateIpAddress
 	networkInterfaceId := instance.PrimaryNetworkInterface.NetworkInterface.NetworkInterfaceId
 
@@ -94,6 +92,7 @@ func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.State
 	}
 
 	s.InstanceSpecConfig.PublicIpAddress = eip.Result.ElasticIp.ElasticIpAddress
+	state.Put("eip",s.InstanceSpecConfig.PublicIpAddress)
 	s.ui.Message(fmt.Sprintf(
 		"Hi, we have created the instance, its name=%v , "+
 			"its id=%v, "+
@@ -136,12 +135,12 @@ func associatePublicIp(networkInterfaceId string, eipId string, privateIpAddress
 	return nil
 }
 func instanceHost(state multistep.StateBag) (string, error) {
-	return state.Get("publicIp").(string), nil
+	return state.Get("eip").(string), nil
 }
 
 func InstanceStatusRefresher(id string, pending, target []string) (instance interface{}, err error) {
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &StateChangeConf{
 		Pending:    pending,
 		Target:     target,
 		Refresh:    instanceStatusRefresher(id),
@@ -155,11 +154,11 @@ func InstanceStatusRefresher(id string, pending, target []string) (instance inte
 	return instance, nil
 }
 
-func instanceStatusRefresher(instanceId string) resource.StateRefreshFunc {
+func instanceStatusRefresher(instanceId string) StateRefreshFunc {
 
 	return func() (instance interface{}, status string, err error) {
 
-		err = resource.Retry(time.Minute, func() *resource.RetryError {
+		err = Retry(time.Minute, func() *RetryError {
 
 			req := apis.NewDescribeInstanceRequest(Region, instanceId)
 			resp, err := VmClient.DescribeInstance(req)
@@ -173,9 +172,9 @@ func instanceStatusRefresher(instanceId string) resource.StateRefreshFunc {
 			instance = nil
 			status = ""
 			if connectionError(err) {
-				return resource.RetryableError(err)
+				return RetryableError(err)
 			} else {
-				return resource.NonRetryableError(err)
+				return NonRetryableError(err)
 			}
 		})
 		return instance, status, err
