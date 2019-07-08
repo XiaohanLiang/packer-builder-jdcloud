@@ -36,16 +36,16 @@ func (s *stepCreateJDCloudImage) Run(_ context.Context, state multistep.StateBag
 }
 
 func ImageStatusWaiter(imageId string) error {
-	req := apis.NewDescribeImageRequest(Region,imageId)
+	req := apis.NewDescribeImageRequest(Region, imageId)
 
-	return Retry(5 * time.Minute,func() *RetryError{
-		resp,err := VmClient.DescribeImage(req)
-		if err == nil && resp.Result.Image.Status == READY{
+	return Retry(5*time.Minute, func() *RetryError {
+		resp, err := VmClient.DescribeImage(req)
+		if err == nil && resp.Result.Image.Status == READY {
 			return nil
 		}
-		if connectionError(err){
+		if connectionError(err) {
 			return RetryableError(err)
-		}else{
+		} else {
 			return NonRetryableError(err)
 		}
 	})

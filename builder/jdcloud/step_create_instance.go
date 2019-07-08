@@ -92,7 +92,7 @@ func (s *stepCreateJDCloudInstance) Run(_ context.Context, state multistep.State
 	}
 
 	s.InstanceSpecConfig.PublicIpAddress = eip.Result.ElasticIp.ElasticIpAddress
-	state.Put("eip",s.InstanceSpecConfig.PublicIpAddress)
+	state.Put("eip", s.InstanceSpecConfig.PublicIpAddress)
 	s.ui.Message(fmt.Sprintf(
 		"Hi, we have created the instance, its name=%v , "+
 			"its id=%v, "+

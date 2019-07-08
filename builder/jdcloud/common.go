@@ -17,7 +17,7 @@ const (
 	VM_STOPPING    = "stopping"
 	VM_STOPPED     = "stopped"
 	READY          = "ready"
-	BUILDER_ID      = "hashicorp.jdcloud"
+	BUILDER_ID     = "hashicorp.jdcloud"
 )
 
 var (

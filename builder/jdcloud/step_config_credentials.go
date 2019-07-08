@@ -14,7 +14,7 @@ type stepConfigCredentials struct {
 	ui                 packer.Ui
 }
 
-func(s *stepConfigCredentials) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *stepConfigCredentials) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 
 	s.ui = state.Get("ui").(packer.Ui)
 	password := s.InstanceSpecConfig.Comm.SSHPassword
@@ -28,7 +28,7 @@ func(s *stepConfigCredentials) Run(_ context.Context, state multistep.StateBag) 
 	}
 
 	if len(newKeyName) > 0 {
-		s.ui.Message("\t We are going to create a new key pair with its name="+newKeyName)
+		s.ui.Message("\t We are going to create a new key pair with its name=" + newKeyName)
 		return s.CreateRandomKeyPair(newKeyName)
 	}
 
@@ -39,8 +39,8 @@ func(s *stepConfigCredentials) Run(_ context.Context, state multistep.StateBag) 
 
 	s.ui.Error("[ERROR] Didn't detect any credentials, you have to specify either " +
 		"{password} or " +
-		"{key-name+local-private-key-path} or " +
-		"{new-key-name} cheers :)")
+		"{key_name+local_private_key_path} or " +
+		"{temporary_key_pair_name} cheers :)")
 	return multistep.ActionHalt
 }
 
@@ -56,10 +56,10 @@ func (s *stepConfigCredentials) ReadExistingPair() multistep.StepAction {
 }
 
 func (s *stepConfigCredentials) CreateRandomKeyPair(keyName string) multistep.StepAction {
-	req := apis.NewCreateKeypairRequest(Region,keyName)
-	resp,err := VmClient.CreateKeypair(req)
+	req := apis.NewCreateKeypairRequest(Region, keyName)
+	resp, err := VmClient.CreateKeypair(req)
 	if err != nil || resp.Error.Code != FINE {
-		s.ui.Error(fmt.Sprintf("[ERROR] Cannot create a new key pair for you, \n error=%v \n response=%v",err,resp))
+		s.ui.Error(fmt.Sprintf("[ERROR] Cannot create a new key pair for you, \n error=%v \n response=%v", err, resp))
 		return multistep.ActionHalt
 	}
 	s.ui.Message("\t\t Keys created successfully :)")
@@ -68,6 +68,6 @@ func (s *stepConfigCredentials) CreateRandomKeyPair(keyName string) multistep.St
 	return multistep.ActionContinue
 }
 
-func(s *stepConfigCredentials) Cleanup(state multistep.StateBag){
+func (s *stepConfigCredentials) Cleanup(state multistep.StateBag) {
 
 }

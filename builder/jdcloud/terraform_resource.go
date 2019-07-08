@@ -1,11 +1,11 @@
 package jdcloud
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"sync"
 	"time"
-	"fmt"
 )
 
 /*
@@ -104,7 +104,6 @@ func NonRetryableError(err error) *RetryError {
 	}
 	return &RetryError{Err: err, Retryable: false}
 }
-
 
 // WaitForState watches an object and waits for it to achieve the state
 // specified in the configuration using the specified Refresh() func,
@@ -288,7 +287,7 @@ func (conf *StateChangeConf) WaitForState() (interface{}, error) {
 
 		case <-timeout:
 			log.Printf("[WARN] WaitForState timeout after %s", conf.Timeout)
-			log.Printf("[WARN] WaitForState starting %s refresh grace period", 30 * time.Second)
+			log.Printf("[WARN] WaitForState starting %s refresh grace period", 30*time.Second)
 
 			// cancel the goroutine and start our grace period timer
 			close(cancelCh)

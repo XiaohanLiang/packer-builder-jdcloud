@@ -17,14 +17,14 @@ func (s *stepStopJDCloudInstance) Run(_ context.Context, state multistep.StateBa
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("Stopping this instance")
 
-	req := apis.NewStopInstanceRequest(Region,s.InstanceSpecConfig.InstanceId)
+	req := apis.NewStopInstanceRequest(Region, s.InstanceSpecConfig.InstanceId)
 	resp, err := VmClient.StopInstance(req)
 	if err != nil || resp.Error.Code != FINE {
 		ui.Error(fmt.Sprintf("[ERROR] Failed in trying to stop this vm: Error-%s ,Resp:%s", err, resp))
 		return multistep.ActionHalt
 	}
 
-	_,err = InstanceStatusRefresher(s.InstanceSpecConfig.InstanceId, []string{VM_RUNNING,VM_STOPPING},[]string{VM_STOPPED})
+	_, err = InstanceStatusRefresher(s.InstanceSpecConfig.InstanceId, []string{VM_RUNNING, VM_STOPPING}, []string{VM_STOPPED})
 	if err != nil {
 		ui.Error(err.Error())
 		return multistep.ActionHalt

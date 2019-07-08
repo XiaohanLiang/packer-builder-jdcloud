@@ -82,7 +82,7 @@ func (s *stepValidateParameters) CreateRandomSubnet() error {
 		return err
 	}
 
-	req := vpc.NewCreateSubnetRequest(Region, newVpc, "created_by_packer", "10.0.0.0/8")
+	req := vpc.NewCreateSubnetRequest(Region, newVpc, "created_by_packer", "192.168.0.0/20")
 	resp, err := VpcClient.CreateSubnet(req)
 	if err != nil || resp.Error.Code != FINE {
 		errorMessage := fmt.Sprintf("[ERROR] Failed in creating new subnet :( \n error:%v \n response:%v", err, resp)
@@ -105,6 +105,5 @@ func (s *stepValidateParameters) CreateRandomVpc() (string, error) {
 	}
 	return resp.Result.VpcId, nil
 }
-
 
 func (s *stepValidateParameters) Cleanup(state multistep.StateBag) {}
