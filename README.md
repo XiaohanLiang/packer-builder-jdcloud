@@ -1,12 +1,22 @@
-# JDCloud builder for Packer
+# Packer-Builder-JDCloud
 
-## What it is 🤔
+## About Packer
 
-We are trying to build our plugin for Hashicorp-Packer.
-This is a developer branch of packer-builder-jdcloud plugin.
+- **TL;DR** Packer helps you to build VM images
+- Packer official website: [Click here](www.packer.io)
 
-## Current status 😎
+## About this branch
 
-- [x] Password / Key pair login
-- [x] Create instance with exists subnet / with a new subnet
-- [ ] Support to Windows VM
+We are trying to build our plugin for Hashicorp-Packer. This is a developer branch of packer-builder-jdcloud plugin.
+
+## How can I access to this plugin
+
+- From binary:
+    - Download binary in the release page, then 
+    - Follow [this instruction](https://www.packer.io/docs/extending/plugins.html#installing-plugins) to use unreleased version
+    - Start [debugging](https://www.packer.io/docs/other/debugging.html)
+- From source code(recommended only when familiar with golang)
+```bash
+cd packer-builder-jdcloud
+make build
+```
